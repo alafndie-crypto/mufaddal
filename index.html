@@ -793,7 +793,7 @@
       <div class="table-wrap">
         <table class="records" id="dmgRecordsTable">
           <thead><tr>
-            <th>رقم السند</th><th>التاريخ</th><th>الأصناف</th><th>الكمية</th><th>القيمة (ر.س)</th><th>ملاحظات</th><th>إجراءات</th>
+            <th>رقم السند</th><th>التاريخ</th><th>الأصناف</th><th>الكمية</th><th>السعر قبل الضريبة (ر.س)</th><th>الضريبة (15%)</th><th>السعر شامل الضريبة (ر.س)</th><th>ملاحظات</th><th>إجراءات</th>
           </tr></thead>
           <tbody id="dmgRecordsBody"></tbody>
         </table>
@@ -871,7 +871,7 @@
       <div class="table-wrap">
         <table class="records" id="retRecordsTablePending">
           <thead><tr>
-            <th>رقم السند</th><th>التاريخ</th><th>المورد</th><th>الأصناف</th><th>الإجمالي شامل الضريبة (ر.س)</th><th>ملاحظات</th><th>إجراءات</th>
+            <th>رقم السند</th><th>التاريخ</th><th>المستودع</th><th>المورد</th><th>الأصناف</th><th>الإجمالي شامل الضريبة (ر.س)</th><th>ملاحظات</th><th>إجراءات</th>
           </tr></thead>
           <tbody id="retRecordsBodyPending"></tbody>
         </table>
@@ -888,7 +888,7 @@
       <div class="table-wrap">
         <table class="records" id="retRecordsTableApproved">
           <thead><tr>
-            <th>رقم السند</th><th>التاريخ</th><th>المورد</th><th>الأصناف</th><th>الإجمالي شامل الضريبة (ر.س)</th><th>ملاحظات</th><th>إجراءات</th>
+            <th>رقم السند</th><th>التاريخ</th><th>المستودع</th><th>المورد</th><th>الأصناف</th><th>الإجمالي شامل الضريبة (ر.س)</th><th>ملاحظات</th><th>إجراءات</th>
           </tr></thead>
           <tbody id="retRecordsBodyApproved"></tbody>
         </table>
@@ -952,7 +952,7 @@
       <div class="table-wrap">
         <table class="records" id="shortRecordsTablePending">
           <thead><tr>
-            <th>رقم السند</th><th>التاريخ</th><th>المورد</th><th>رقم الفاتورة</th><th>الأصناف</th><th>الإجمالي شامل الضريبة</th><th>ملاحظات</th><th>إجراءات</th>
+            <th>رقم السند</th><th>التاريخ</th><th>المستودع</th><th>المورد</th><th>رقم الفاتورة</th><th>الأصناف</th><th>الإجمالي شامل الضريبة</th><th>ملاحظات</th><th>إجراءات</th>
           </tr></thead>
           <tbody id="shortRecordsBodyPending"></tbody>
         </table>
@@ -969,7 +969,7 @@
       <div class="table-wrap">
         <table class="records" id="shortRecordsTableApproved">
           <thead><tr>
-            <th>رقم السند</th><th>التاريخ</th><th>المورد</th><th>رقم الفاتورة</th><th>الأصناف</th><th>الإجمالي شامل الضريبة</th><th>ملاحظات</th><th>إجراءات</th>
+            <th>رقم السند</th><th>التاريخ</th><th>المستودع</th><th>المورد</th><th>رقم الفاتورة</th><th>الأصناف</th><th>الإجمالي شامل الضريبة</th><th>ملاحظات</th><th>إجراءات</th>
           </tr></thead>
           <tbody id="shortRecordsBodyApproved"></tbody>
         </table>
@@ -1891,7 +1891,7 @@ function voucherHTML(rec){
         '<div class="arrow">⟵</div>' +
         '<div class="box">'+esc(whName(rec.to))+'</div>' +
       '</div>' +
-      '<table class="v-table"><thead><tr><th>م</th><th>الصنف</th><th>السعر</th><th>الكمية</th><th>القيمة</th><th>ملاحظات</th></tr></thead>' +
+      '<table class="v-table"><thead><tr><th>م</th><th>الصنف</th><th>السعر</th><th>الكمية</th><th>قبل الضريبة</th><th>الضريبة 15%</th><th>شامل الضريبة</th><th>ملاحظات</th></tr></thead>' +
       '<tbody>'+itemsRows+'<tr><td colspan="2">الإجمالي</td><td></td><td>'+totalQty+'</td><td>'+money(totalValue)+'</td><td></td></tr></tbody></table>' +
       '<div class="v-merge-hint">'+(anyMerged?'🔗 يشير هذا الرمز إلى دمج عدة إدخالات لنفس الصنف والسعر في قيمة واحدة.':'')+'</div>' +
       (rec.notes ? '<div class="v-notes"><b>ملاحظات عامة:</b> '+esc(rec.notes)+'</div>' : '') +
@@ -3429,12 +3429,16 @@ document.getElementById('dmgCancelEditBtn').addEventListener('click', function()
 
 function dmgVoucherHTML(rec){
   var rows = rec.items.map(function(it, i){
-    var lineTotal = Number(it.price||0) * Number(it.qty||0);
+    var lineBeforeTax = Number(it.price||0) * Number(it.qty||0);
+    var lineVat = lineBeforeTax * VAT_RATE;
+    var lineWithVat = lineBeforeTax + lineVat;
     return '<tr><td>'+(i+1)+'</td><td>'+esc(it.category)+'</td><td>'+money(it.price)+' / ريال</td>' +
-      '<td>'+esc(it.qty)+' حبة</td><td>'+money(lineTotal)+'</td><td>'+esc(it.note||'—')+'</td></tr>';
+      '<td>'+esc(it.qty)+' حبة</td><td>'+money(lineBeforeTax)+'</td><td>'+money(lineVat)+'</td><td>'+money(lineWithVat)+'</td><td>'+esc(it.note||'—')+'</td></tr>';
   }).join('');
   var totalQty = rec.items.reduce(function(s,it){ return s+Number(it.qty||0); },0);
-  var totalValue = rec.items.reduce(function(s,it){ return s+(Number(it.price||0)*Number(it.qty||0)); },0);
+  var totalBeforeTax = rec.items.reduce(function(s,it){ return s+(Number(it.price||0)*Number(it.qty||0)); },0);
+  var totalVat = totalBeforeTax * VAT_RATE;
+  var totalWithVat = totalBeforeTax + totalVat;
   var editedNote = rec.editedAt ? ('<span>(تم التعديل بتاريخ '+esc(rec.editedAt.slice(0,10))+')</span>') : '';
   return (
     '<div class="voucher-page">' +
@@ -3452,7 +3456,7 @@ function dmgVoucherHTML(rec){
         '<div><b>حالة السند</b>'+(rec.editedAt?'معدَّل '+editedNote:'أصلي')+'</div>' +
       '</div>' +
       '<table class="v-table"><thead><tr><th>م</th><th>الصنف</th><th>السعر</th><th>الكمية</th><th>القيمة</th><th>ملاحظات</th></tr></thead>' +
-      '<tbody>'+rows+'<tr><td colspan="2">الإجمالي</td><td></td><td>'+totalQty+'</td><td>'+money(totalValue)+'</td><td></td></tr></tbody></table>' +
+      '<tbody>'+rows+'<tr><td colspan="2">الإجمالي</td><td></td><td>'+totalQty+'</td><td>'+money(totalBeforeTax)+'</td><td>'+money(totalVat)+'</td><td>'+money(totalWithVat)+'</td><td></td></tr></tbody></table>' +
       (rec.notes ? '<div class="v-notes"><b>ملاحظات عامة:</b> '+esc(rec.notes)+'</div>' : '') +
       '<div class="v-foot"><span>الدعم الفني: المهندس صلاح غالب — 0556321436</span><span>صادر من: '+esc(whName(rec.warehouse))+'</span></div>' +
     '</div>'
@@ -3491,7 +3495,9 @@ function renderDmgRecords(){
   document.getElementById('dmgRecordsEmpty').style.display = records.length ? 'none' : 'block';
   records.forEach(function(r){
     var totalQty = r.items.reduce(function(s,it){ return s+Number(it.qty||0); },0);
-    var totalValue = r.items.reduce(function(s,it){ return s+(Number(it.price||0)*Number(it.qty||0)); },0);
+    var totalBeforeTax = r.items.reduce(function(s,it){ return s+(Number(it.price||0)*Number(it.qty||0)); },0);
+    var totalVat = totalBeforeTax * VAT_RATE;
+    var totalWithVat = totalBeforeTax + totalVat;
     var catsText = r.items.map(function(it){ return it.category+' ('+it.qty+')'; }).join('، ');
     var tr = document.createElement('tr');
     tr.innerHTML =
@@ -3499,7 +3505,9 @@ function renderDmgRecords(){
       '<td>'+fmtDate(r.date)+'</td>' +
       '<td title="'+esc(catsText)+'">'+esc(catsText.length>28?catsText.slice(0,28)+'…':catsText)+'</td>' +
       '<td>'+totalQty+'</td>' +
-      '<td>'+money(totalValue)+'</td>' +
+      '<td>'+money(totalBeforeTax)+'</td>' +
+      '<td>'+money(totalVat)+'</td>' +
+      '<td>'+money(totalWithVat)+'</td>' +
       '<td title="'+esc(r.notes)+'">'+esc((r.notes||'—').slice(0,18))+'</td>' +
       '<td><div class="row-actions">' +
         '<button class="mini-btn" data-act="pdf" data-id="'+r.id+'">طباعة</button>' +
@@ -3748,6 +3756,7 @@ function retRowHTML(r){
   return (
     '<td>'+esc(r.voucherNo)+(r.editedAt?' <span class="badge badge-out">معدَّل</span>':'')+'</td>' +
     '<td>'+fmtDate(r.date)+'</td>' +
+    '<td>'+esc(whName(r.warehouse))+'</td>' +
     '<td>'+esc(r.supplierName)+'</td>' +
     '<td title="'+esc(catsText)+'">'+esc(catsText.length>28?catsText.slice(0,28)+'…':catsText)+'</td>' +
     '<td>'+money(totals.withVat)+'</td>' +
@@ -4044,6 +4053,7 @@ function shortRowHTML(r){
   return (
     '<td>'+esc(r.voucherNo)+(r.editedAt?' <span class="badge badge-out">معدَّل</span>':'')+'</td>' +
     '<td>'+fmtDate(r.date)+'</td>' +
+    '<td>'+esc(whName(r.warehouse))+'</td>' +
     '<td>'+esc(r.supplierName)+'</td>' +
     '<td>'+esc(r.invoiceNo||'—')+'</td>' +
     '<td title="'+esc(catsText)+'">'+esc(catsText.length>28?catsText.slice(0,28)+'…':catsText)+'</td>' +
