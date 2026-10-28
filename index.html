@@ -4426,7 +4426,7 @@ initSetup();
       closeInvoicesMode(); document.querySelectorAll('nav.tabs button').forEach(function(b){b.classList.toggle('active',b.dataset.tab===name);}); document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.toggle('active',p.id==='tab-'+name);}); adminDashboard(); return;
     }
     if(name==='pricediff'){
-      closeInvoicesMode(); document.querySelectorAll('nav.tabs button').forEach(function(b){b.classList.toggle('active',b.dataset.tab===name);}); document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.toggle('active',p.id==='tab-'+name);}); pdRender(); return;
+      closeInvoicesMode(); document.querySelectorAll('nav.tabs button').forEach(function(b){b.classList.toggle('active',b.dataset.tab===name);}); document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.toggle('active',p.id==='tab-'+name);}); var pdWh=document.getElementById('pdWarehouse'); whOptions(pdWh, pdWh?pdWh.value:''); pdRender(); return;
     }
     oldActivateTab(name);
     if(name==='damaged'){whOptions(document.getElementById('dmgWarehouse'),document.getElementById('dmgWarehouse').value);}
