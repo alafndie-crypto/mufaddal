@@ -1000,35 +1000,33 @@
 
   <!-- ===================== PRICE DIFFERENCE TAB ===================== -->
   <section class="tab-panel" id="tab-pricediff">
+  <style>
+    #tab-pricediff .pd-grid{display:grid;gap:14px;grid-template-columns:repeat(3,minmax(0,1fr));}
+    #tab-pricediff .pd-res input{background:#F4F1E6;font-weight:700;}
+    #tab-pricediff .pd-total input{background:var(--ok-bg);color:var(--ok);font-weight:800;}
+    @media (max-width:520px){
+      #tab-pricediff .pd-grid{grid-template-columns:minmax(0,1fr);}
+    }
+  </style>
+
     <div class="card">
       <h2 id="pdFormTitle">إشعار فارق سعر جديد</h2>
       <p class="hint">إذا أرسل التاجر الصنف بسعر أعلى من السعر الذي تم التحقق منه، يحسب النظام الفارق تلقائيًا مع الضريبة 15%.</p>
-      <div class="row2">
+      <div class="pd-grid">
         <div class="field"><label>المستودع / الفرع <span style="color:var(--danger)">*</span></label><select id="pdWarehouse"></select></div>
         <div class="field"><label>اسم التاجر <span style="color:var(--danger)">*</span></label><input type="text" id="pdTrader" placeholder="اسم التاجر / المورد"></div>
-      </div>
-      <div class="row2">
         <div class="field"><label>رقم الفاتورة <span style="color:var(--danger)">*</span></label><input type="text" id="pdInvoice" placeholder="رقم الفاتورة"></div>
-        <div class="field date-field" style="max-width:none;"><label>التاريخ <span style="color:var(--danger)">*</span></label><input type="date" id="pdDate"></div>
-      </div>
-      <div class="row2">
+        <div class="field"><label>التاريخ <span style="color:var(--danger)">*</span></label><input type="date" id="pdDate"></div>
         <div class="field"><label>رقم الصنف <span style="color:var(--danger)">*</span></label><input type="text" id="pdItemNo" placeholder="رقم الصنف"></div>
         <div class="field"><label>اسم الصنف</label><input type="text" id="pdItemName" placeholder="اسم الصنف"></div>
-      </div>
-      <div class="row2">
-        <div class="field"><label>السعر المرسل من التاجر قبل الضريبة <span style="color:var(--danger)">*</span></label><input type="number" id="pdOriginal" min="0" step="0.01" placeholder="100"></div>
-        <div class="field"><label>السعر بعد التحقق قبل الضريبة <span style="color:var(--danger)">*</span></label><input type="number" id="pdVerified" min="0" step="0.01" placeholder="90"></div>
-      </div>
-      <div class="row2">
-        <div class="field"><label>الكمية <span style="color:var(--danger)">*</span></label><input type="number" id="pdQty" min="1" step="1" placeholder="1"></div>
-        <div class="field"><label>فارق السعر للوحدة</label><input type="text" id="pdUnitDiff" disabled></div>
-      </div>
-      <div class="row2">
-        <div class="field"><label>فارق السعر قبل الضريبة</label><input type="text" id="pdBeforeTax" disabled></div>
-        <div class="field"><label>ضريبة 15%</label><input type="text" id="pdVat" disabled></div>
-      </div>
-      <div class="row2">
-        <div class="field"><label>فارق السعر بعد الضريبة</label><input type="text" id="pdAfterTax" disabled></div>
+        <div class="field"><label><span id="pdQtyLbl">الكمية (درزن)</span> <span style="color:var(--danger)">*</span></label><input type="number" id="pdQty" min="1" step="1" placeholder="1"></div>
+        <div class="field"><label>الوحدة <span style="color:var(--danger)">*</span></label><select id="pdUnit"><option value="درزن" selected>درزن</option><option value="حبة">حبة</option></select></div>
+        <div class="field"><label><span id="pdOrigLbl">السعر المرسل من التاجر للدرزن قبل الضريبة</span> <span style="color:var(--danger)">*</span></label><input type="number" id="pdOriginal" min="0" step="0.01" placeholder="100"></div>
+        <div class="field"><label><span id="pdVerLbl">السعر بعد التحقق للدرزن قبل الضريبة</span> <span style="color:var(--danger)">*</span></label><input type="number" id="pdVerified" min="0" step="0.01" placeholder="90"></div>
+        <div class="field pd-res"><label><span id="pdUnitDiffLbl">فارق السعر للدرزن</span></label><input type="text" id="pdUnitDiff" disabled></div>
+        <div class="field pd-res"><label>فارق السعر قبل الضريبة</label><input type="text" id="pdBeforeTax" disabled></div>
+        <div class="field pd-res"><label>ضريبة 15%</label><input type="text" id="pdVat" disabled></div>
+        <div class="field pd-res pd-total"><label>فارق السعر بعد الضريبة</label><input type="text" id="pdAfterTax" disabled></div>
         <div class="field"><label>ملاحظة</label><input type="text" id="pdNote" placeholder="اختياري"></div>
       </div>
       <div class="actions-bar">
@@ -4335,19 +4333,28 @@ initSetup();
     document.getElementById('pdAfterTax').value=fmtMoney(after);
     return {original:o,verified:v,qty:q,unitDiff:unit,beforeTax:before,vat:vat,afterTax:after};
   }
+  function pdUnitVal(){ var u=document.getElementById('pdUnit'); return (u && u.value==='حبة')?'حبة':'درزن'; }
+  function pdApplyUnit(){
+    var u=pdUnitVal(), one=(u==='حبة')?'للحبة':'للدرزن';
+    document.getElementById('pdUnit').value=u;
+    document.getElementById('pdOrigLbl').textContent='السعر المرسل من التاجر '+one+' قبل الضريبة';
+    document.getElementById('pdVerLbl').textContent='السعر بعد التحقق '+one+' قبل الضريبة';
+    document.getElementById('pdQtyLbl').textContent='الكمية ('+u+')';
+    document.getElementById('pdUnitDiffLbl').textContent='فارق السعر '+one;
+  }
   function pdReset(){
     pdEditingId=null;
     ['pdTrader','pdInvoice','pdItemNo','pdItemName','pdOriginal','pdVerified','pdQty','pdNote'].forEach(function(id){document.getElementById(id).value='';});
     document.getElementById('pdDate').value=todayStr();
     whOptions(document.getElementById('pdWarehouse'));
     document.getElementById('pdUnitDiff').value=''; document.getElementById('pdBeforeTax').value=''; document.getElementById('pdVat').value=''; document.getElementById('pdAfterTax').value='';
-    document.getElementById('pdFormTitle').textContent='إشعار فارق سعر جديد'; document.getElementById('pdCancelBtn').style.display='none';
+    document.getElementById('pdUnit').value='درزن'; pdApplyUnit(); document.getElementById('pdFormTitle').textContent='إشعار فارق سعر جديد'; document.getElementById('pdCancelBtn').style.display='none';
   }
   function pdCollect(){
     var wh=document.getElementById('pdWarehouse').value, trader=document.getElementById('pdTrader').value.trim(), inv=document.getElementById('pdInvoice').value.trim(), itemNo=document.getElementById('pdItemNo').value.trim(), date=document.getElementById('pdDate').value||todayStr();
     var c=pdCalc();
     if(!wh||!trader||!inv||!itemNo||c.qty<=0||c.original<0||c.verified<0){toast('أكمل الحقول المطلوبة في إشعار فارق السعر');return null;}
-    return {warehouse:whKeyFromName(wh),warehouseName:wh,trader:trader,invoiceNo:inv,date:date,itemNo:itemNo,itemName:document.getElementById('pdItemName').value.trim(),original:c.original,verified:c.verified,qty:c.qty,unitDiff:c.unitDiff,beforeTax:c.beforeTax,vat:c.vat,afterTax:c.afterTax,note:document.getElementById('pdNote').value.trim()};
+    return {warehouse:whKeyFromName(wh),warehouseName:wh,trader:trader,invoiceNo:inv,date:date,itemNo:itemNo,itemName:document.getElementById('pdItemName').value.trim(),unit:pdUnitVal(),original:c.original,verified:c.verified,qty:c.qty,unitDiff:c.unitDiff,beforeTax:c.beforeTax,vat:c.vat,afterTax:c.afterTax,note:document.getElementById('pdNote').value.trim()};
   }
   function pdPersist(){
     var d=pdCollect(); if(!d)return null; var a=pdLoad(), rec;
@@ -4368,7 +4375,7 @@ initSetup();
     ap.forEach(function(r){var tr=document.createElement('tr');tr.innerHTML=pdRow(r);document.getElementById('pdApprovedBody').appendChild(tr);});
   }
   function pdVoucher(r){
-    return '<div class="voucher-page"><div class="v-head"><div class="v-brand"><div class="pyr-mark"><div class="tier t1"></div><div class="tier t2"></div><div class="tier t3"></div></div><div><h2>أصالة الهرم</h2><p>إشعار فارق سعر</p></div></div><div style="text-align:left;font-size:9px">رقم السند<br><b>'+esc(r.voucherNo)+'</b></div></div><div class="v-title">إشعار فارق سعر</div><div class="v-meta"><div><b>المستودع</b>'+esc(whNameSafe(r.warehouse))+'</div><div><b>التاريخ</b>'+fmtDate(r.date)+'</div><div><b>التاجر</b>'+esc(r.trader)+'</div><div><b>رقم الفاتورة</b>'+esc(r.invoiceNo)+'</div></div><table class="v-table"><thead><tr><th>رقم الصنف</th><th>اسم الصنف</th><th>الكمية</th><th>سعر التاجر</th><th>السعر بعد التحقق</th><th>الفارق قبل الضريبة</th><th>الضريبة 15%</th><th>الفارق بعد الضريبة</th></tr></thead><tbody><tr><td>'+esc(r.itemNo)+'</td><td>'+esc(r.itemName||'—')+'</td><td>'+esc(r.qty)+'</td><td>'+fmtMoney(r.original)+'</td><td>'+fmtMoney(r.verified)+'</td><td>'+fmtMoney(r.beforeTax)+'</td><td>'+fmtMoney(r.vat)+'</td><td>'+fmtMoney(r.afterTax)+'</td></tr></tbody></table>'+(r.note?'<div class="v-notes"><b>ملاحظة:</b> '+esc(r.note)+'</div>':'')+'</div>';
+    return '<div class="voucher-page"><div class="v-head"><div class="v-brand"><div class="pyr-mark"><div class="tier t1"></div><div class="tier t2"></div><div class="tier t3"></div></div><div><h2>أصالة الهرم</h2><p>إشعار فارق سعر</p></div></div><div style="text-align:left;font-size:9px">رقم السند<br><b>'+esc(r.voucherNo)+'</b></div></div><div class="v-title">إشعار فارق سعر</div><div class="v-meta"><div><b>المستودع</b>'+esc(whNameSafe(r.warehouse))+'</div><div><b>التاريخ</b>'+fmtDate(r.date)+'</div><div><b>التاجر</b>'+esc(r.trader)+'</div><div><b>رقم الفاتورة</b>'+esc(r.invoiceNo)+'</div></div><table class="v-table"><thead><tr><th>رقم الصنف</th><th>اسم الصنف</th><th>الكمية</th><th>سعر التاجر</th><th>السعر بعد التحقق</th><th>الفارق قبل الضريبة</th><th>الضريبة 15%</th><th>الفارق بعد الضريبة</th></tr></thead><tbody><tr><td>'+esc(r.itemNo)+'</td><td>'+esc(r.itemName||'—')+'</td><td>'+esc(r.qty)+' '+esc(r.unit||'درزن')+'</td><td>'+fmtMoney(r.original)+'</td><td>'+fmtMoney(r.verified)+'</td><td>'+fmtMoney(r.beforeTax)+'</td><td>'+fmtMoney(r.vat)+'</td><td>'+fmtMoney(r.afterTax)+'</td></tr></tbody></table>'+(r.note?'<div class="v-notes"><b>ملاحظة:</b> '+esc(r.note)+'</div>':'')+'</div>';
   }
   function pdGet(id){return pdLoad().find(function(x){return x.id===id;});}
   function pdHandle(e){
@@ -4378,11 +4385,12 @@ initSetup();
     if(act==='wa'){shareOrDownloadPdf([r],pdVoucher,'AlHaram-PriceDifference',function(rs){return 'إشعار فارق سعر - '+rs[0].voucherNo+' | '+whNameSafe(rs[0].warehouse)+' | '+rs[0].trader+' | الفارق بعد الضريبة: '+fmtMoney(rs[0].afterTax);});return;}
     if(act==='del'){requirePassword(function(){pdSave(pdLoad().filter(function(x){return x.id!==r.id;}));pdRender();toast('تم حذف الإشعار');},'أدخل كلمة السر لتأكيد حذف إشعار فارق السعر '+r.voucherNo+'.');return;}
     if(act==='edit'){
-      pdEditingId=r.id; document.getElementById('pdWarehouse').value=whNameSafe(r.warehouse); document.getElementById('pdTrader').value=r.trader||''; document.getElementById('pdInvoice').value=r.invoiceNo||''; document.getElementById('pdDate').value=r.date||todayStr(); document.getElementById('pdItemNo').value=r.itemNo||''; document.getElementById('pdItemName').value=r.itemName||''; document.getElementById('pdOriginal').value=r.original; document.getElementById('pdVerified').value=r.verified; document.getElementById('pdQty').value=r.qty; document.getElementById('pdNote').value=r.note||''; pdCalc(); document.getElementById('pdFormTitle').textContent='تعديل إشعار رقم '+r.voucherNo; document.getElementById('pdCancelBtn').style.display='inline-flex'; activateTab('pricediff');
+      pdEditingId=r.id; document.getElementById('pdWarehouse').value=whNameSafe(r.warehouse); document.getElementById('pdTrader').value=r.trader||''; document.getElementById('pdInvoice').value=r.invoiceNo||''; document.getElementById('pdDate').value=r.date||todayStr(); document.getElementById('pdItemNo').value=r.itemNo||''; document.getElementById('pdItemName').value=r.itemName||''; document.getElementById('pdOriginal').value=r.original; document.getElementById('pdVerified').value=r.verified; document.getElementById('pdQty').value=r.qty; document.getElementById('pdUnit').value=r.unit||'درزن'; pdApplyUnit(); document.getElementById('pdNote').value=r.note||''; pdCalc(); document.getElementById('pdFormTitle').textContent='تعديل إشعار رقم '+r.voucherNo; document.getElementById('pdCancelBtn').style.display='inline-flex'; activateTab('pricediff');
     }
   }
   document.getElementById('pdPendingBody').addEventListener('click',pdHandle); document.getElementById('pdApprovedBody').addEventListener('click',pdHandle);
   ['pdOriginal','pdVerified','pdQty'].forEach(function(id){document.getElementById(id).addEventListener('input',pdCalc);});
+  document.getElementById('pdUnit').addEventListener('change',function(){pdApplyUnit();pdCalc();});
   document.getElementById('pdSaveBtn').addEventListener('click',function(){var r=pdPersist();if(!r)return;toast(pdEditingId?'تم تحديث إشعار فارق السعر':'تم حفظ إشعار فارق السعر');pdReset();pdRender();activateTab('pricediff');});
   document.getElementById('pdCancelBtn').addEventListener('click',pdReset);
   document.getElementById('pdPrintBtn').addEventListener('click',function(){var r=pdPersist();if(!r)return;pdReset();pdRender();viewOrDownloadPdf([r],pdVoucher,'AlHaram-PriceDifference');});
